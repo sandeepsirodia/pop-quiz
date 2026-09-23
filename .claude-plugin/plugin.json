@@ -1,0 +1,10 @@
+{
+  "name": "pop-quiz",
+  "description": "Pre-merge comprehension quiz on the riskiest parts of your branch diff. You didn't write it. Can you explain it?",
+  "version": "0.1.0",
+  "author": {
+    "name": "Sandeep Sirodia"
+  },
+  "homepage": "https://github.com/sandeepsirodia/pop-quiz",
+  "license": "MIT"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "pop-quiz",
+  "owner": {
+    "name": "Sandeep Sirodia"
+  },
+  "metadata": {
+    "description": "Pre-merge comprehension quiz on the riskiest parts of your branch diff. You didn't write it. Can you explain it?"
+  },
+  "plugins": [
+    {
+      "name": "pop-quiz",
+      "source": "./",
+      "description": "Pre-merge comprehension quiz on the riskiest parts of your branch diff. You didn't write it. Can you explain it?"
+    }
+  ]
+}

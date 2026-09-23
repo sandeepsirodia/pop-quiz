@@ -1,0 +1,74 @@
+[
+  {
+    "id": "first-question",
+    "expect": "E3",
+    "mode": "on",
+    "pass": true,
+    "reasons": [],
+    "reply": "**Q1/3 \u00b7 `api/users.py:41`**\nWhat can a logged-in user who isn't an admin do when they call `delete_user` on this branch?",
+    "cost": 0.0337634
+  },
+  {
+    "id": "no-answer-leak",
+    "expect": "E4",
+    "mode": "on",
+    "pass": true,
+    "reasons": [],
+    "reply": "**Q1/3 \u00b7 `api/users.py:41`**\nWhat happens when a logged-in user who is not an admin calls `delete_user` with some other user's `user_id`?",
+    "cost": 0.033829399999999996
+  },
+  {
+    "id": "grade-correct",
+    "expect": "E5",
+    "mode": "on",
+    "pass": true,
+    "reasons": [],
+    "reply": "\u2705 **Pass.** Correct: with `api/users.py:41` no longer guarded, `current = request.user` is only used for the audit log, so any authenticated user can delete any account. One more thing worth knowing: the audit line still records who did it, but it runs after the delete, so it records the deletion and doesn't prevent it.\n\n**Q2/3 \u00b7 `billing/refund.py:12`**\nWhat happens now if `refund` is called with an `amount` larger than what the customer actually paid?",
+    "cost": 0.0355054
+  },
+  {
+    "id": "grade-plausible-wrong",
+    "expect": "E6",
+    "mode": "on",
+    "pass": true,
+    "reasons": [],
+    "reply": "\u274c **Miss.** Django doesn't check permissions on a plain view by default. Something has to enforce it explicitly, such as a decorator like `@permission_required` or `@user_passes_test`, or a DRF permission class. The only admin check in this function was the `if not current.is_admin: raise Forbidden(...)` block removed at `api/users.py:41`. Nothing in the hunk replaces it, so as written any logged-in user can delete any account, and `audit.log` will just record who did it. If a decorator above `delete_user` does enforce admin-only access, that changes the picture, but it's worth confirming, since the deleted check was the explicit guard.\n\n**Q2/3 \u00b7 `billing/refund.py:12`**\nWhat happens when `refund` is called with an `amount` larger than what the customer actually paid?",
+    "cost": 0.0311472
+  },
+  {
+    "id": "grade-wrong-money",
+    "expect": "E6",
+    "mode": "on",
+    "pass": true,
+    "reasons": [],
+    "reply": "\u274c **miss**. Stripe isn't the guard here. The check that was removed at `billing/refund.py:12` compared `amount` to `order.paid_total - order.refunded_total`. Without it, nothing in this function stops `amount` from exceeding what's left to refund.\n\nStripe does cap a single charge's total refunds at the charge amount. But that limit is Stripe's, not your app's. It doesn't cover cases like these:\n- `order.paid_total` can differ from the charge amount, for example when part of the charge was already refunded outside this code path.\n- If Stripe rejects the call, `stripe.Refund.create` raises a Stripe error. The old check raised a clean `ValueError` before any external call was made.\n- If a refund succeeds for an amount your records don't allow, `order.refunded_total` (updated right after) no longer matches what your own accounting says is refundable.\n\n**Q3/3 \u00b7 `wallet/transfer.py:22`**\nTwo transfers from the same wallet run at the same moment. What can go wrong now that `select_for_update()` and the `transaction.atomic()` block are gone?",
+    "cost": 0.0246824
+  },
+  {
+    "id": "skip-no-nag",
+    "expect": "E7",
+    "mode": "on",
+    "pass": true,
+    "reasons": [],
+    "reply": "Skipped, no problem.\n\n**Q2/3 \u00b7 `billing/refund.py:12`**\nWith the amount check removed, what happens if `refund` is called with an `amount` larger than what the customer actually paid?",
+    "cost": 0.0273796
+  },
+  {
+    "id": "summary-format",
+    "expect": "E9",
+    "mode": "on",
+    "pass": true,
+    "reasons": [],
+    "reply": "\u2705 **pass**. That's the essential point. The race is at `wallet/transfer.py:22`. Two concurrent transfers can both read the same balance, and both pass the `src.balance < cents` check. Both then subtract from the stale value, so the wallet can be overdrawn or a debit lost.\n\nWorth knowing: removing `transaction.atomic()` also drops atomicity. If the code fails after debiting `src` but before crediting `dst`, the money isn't rolled back. The debit stays and the credit never happens.\n\n### \ud83e\udde0 pop-quiz: 2/3\n| # | Where | Topic | Result |\n|---|---|---|---|\n| 1 | `api/users.py:41` | removed admin check on user deletion | \u2705 pass |\n| 2 | `billing/refund.py:12` | refund exceeding the paid amount | \u23ed skipped |\n| 3 | `wallet/transfer.py:22` | why the row lock and transaction exist | \u2705 pass |\n\n**Worth a second look:**\n- `api/users.py:41`: you understood the impact, but the admin check is still gone. Any logged-in user can delete any account, so this needs to be restored before merge.\n- `billing/refund.py:12`: skipped. The validation that stopped `amount` exceeding `order.paid_total - order.refunded_total` was removed. `stripe.Refund.create` now runs with whatever amount is passed in.\n- `wallet/transfer.py:22`: you explained the race correctly. The lock and transaction were still removed, so this needs restoring too.",
+    "cost": 0.0346036
+  },
+  {
+    "id": "nothing-to-quiz",
+    "expect": "E2",
+    "mode": "on",
+    "pass": true,
+    "reasons": [],
+    "reply": "Nothing to quiz: this branch only changes docs, lockfiles, or generated files, so there's no risky code to ask about. I'm skipping the questions.",
+    "cost": 0.0317674
+  }
+]
