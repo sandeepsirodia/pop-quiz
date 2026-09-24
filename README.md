@@ -104,6 +104,13 @@ python3 skills/pop-quiz/scripts/score.py --base main
 
 8 scripted conversations: the first question, no answer leaks, grading a right answer, grading two plausible wrong ones, skipping, the summary format, and "nothing to quiz". Claude Sonnet with an LLM judge passed **8/8**, and the replies are [saved here](evals/results.json), including the privilege-escalation catch above.
 
+## Prior art, and what's new here
+
+- **[Gater](https://usegater.app/)** is a hosted service that quizzes teams on PRs.
+- Other "merge quiz" prompts exist as skills.
+
+pop-quiz is local and free. Its question targeting is a **deterministic, explainable risk scorer**, so you can see why each hunk was chosen, and its behavior is checked by an eval set with saved replies.
+
 <details>
 <summary><b>Development</b></summary>
 
